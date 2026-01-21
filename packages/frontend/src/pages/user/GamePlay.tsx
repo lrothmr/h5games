@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Spin, message, Dropdown, Switch, Space } from 'antd';
+import { Button, Spin, message, Dropdown, Switch, Space, Badge } from 'antd';
 import {
   HomeOutlined,
   ReloadOutlined,
@@ -294,24 +294,26 @@ export default function GamePlay() {
         onOpenChange={setMenuVisible}
         placement="topLeft"
       >
-        <Button
-          type="primary"
-          shape="circle"
-          size="large"
-          icon={<ToolOutlined />}
-          style={{
-            position: 'absolute',
-            bottom: isFullscreen ? 20 : 40,
-            right: 20,
-            zIndex: 1000,
-            width: 50,
-            height: 50,
-            opacity: menuVisible ? 1 : 0.6,
-            transition: 'opacity 0.3s',
-            boxShadow: '0 4px 15px rgba(0, 0, 0, 0.4)',
-            border: '2px solid rgba(255, 255, 255, 0.2)'
-          }}
-        />
+        <Badge dot={vfsReady} status="processing" offset={[-5, 5]}>
+          <Button
+            type="primary"
+            shape="circle"
+            size="large"
+            icon={<ToolOutlined />}
+            style={{
+              position: 'absolute',
+              bottom: isFullscreen ? 20 : 40,
+              right: 20,
+              zIndex: 1000,
+              width: 50,
+              height: 50,
+              opacity: menuVisible ? 1 : 0.6,
+              transition: 'opacity 0.3s',
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.4)',
+              border: '2px solid rgba(255, 255, 255, 0.2)'
+            }}
+          />
+        </Badge>
       </Dropdown>
     </div>
   );
