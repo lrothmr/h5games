@@ -9,7 +9,6 @@ import { getDatabase, saveDatabase } from '../config/database.js';
 export const verifyAndEnableMfa = async (req: Request, res: Response) => {
   try {
     const { secret, token } = req.body;
-    console.log('Verifying MFA:', { secretLength: secret?.length, token });
 
     if (!secret || !token) {
       return res.status(400).json({ success: false, message: '参数不完整' });
@@ -22,8 +21,6 @@ export const verifyAndEnableMfa = async (req: Request, res: Response) => {
       window: 1 // Allow 1 step window (30s)
     });
 
-    console.log('MFA Verification Result:', verified);
-
     if (!verified) {
       return res.status(401).json({ success: false, message: '验证码错误' });
     }
@@ -34,7 +31,6 @@ export const verifyAndEnableMfa = async (req: Request, res: Response) => {
       db.run(`INSERT OR REPLACE INTO system_settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)`, 
         ['admin_mfa_secret', secret]);
       saveDatabase();
-      console.log('MFA secret saved to database');
     } catch (dbError) {
       console.error('Database error saving MFA secret:', dbError);
       return res.status(500).json({ success: false, message: '保存配置失败' });
@@ -76,7 +72,6 @@ export const adminLogin = async (req: Request, res: Response) => {
         const result = db.exec(`SELECT value FROM system_settings WHERE key = 'admin_mfa_secret'`);
         if (result.length > 0 && result[0].values.length > 0) {
           mfaSecret = result[0].values[0][0] as string;
-          console.log('Found MFA secret in DB');
         }
       } catch (e) {
         console.warn('Could not read system_settings (table might not exist yet):', e);
@@ -84,7 +79,6 @@ export const adminLogin = async (req: Request, res: Response) => {
 
       if (!mfaSecret) {
         mfaSecret = config.admin.mfaSecret;
-        if (mfaSecret) console.log('Using MFA secret from config');
       }
 
       if (mfaSecret) {
@@ -160,18 +154,15 @@ export const changeAdminPassword = async (req: Request, res: Response) => {
 
 export const setupMfa = async (req: Request, res: Response) => {
   try {
-    console.log('Starting MFA setup...');
     const secret = speakeasy.generateSecret({
       name: `MyGamesV2 Admin (${config.admin.username})`,
     });
-    console.log('Secret generated');
 
     if (!secret.otpauth_url) {
       throw new Error('Failed to generate OTPAuth URL');
     }
 
     const qrCodeUrl = await qrcode.toDataURL(secret.otpauth_url);
-    console.log('QR Code generated');
 
     return res.json({
       success: true,

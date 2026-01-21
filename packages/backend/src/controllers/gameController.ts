@@ -30,16 +30,7 @@ export const getGames = async (_req: Request, res: Response) => {
     return res.json({ success: true, message: '获取成功', data: games });
   } catch (error) {
     console.error('Get games error:', error);
-    try {
-      const db = getDatabase();
-      const result = db.exec("SELECT game_id, name, url FROM games");
-      const games = result.length > 0 ? result[0].values.map((row: any[]) => ({
-        id: row[0], name: row[1], url: row[2], category: '其他'
-      })) : [];
-      return res.json({ success: true, message: '获取成功(兼容模式)', data: games });
-    } catch (innerError) {
-      return res.status(500).json({ success: false, message: '数据库查询失败' });
-    }
+    return res.status(500).json({ success: false, message: '数据库查询失败' });
   }
 };
 

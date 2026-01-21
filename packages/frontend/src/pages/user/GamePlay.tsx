@@ -28,6 +28,7 @@ export default function GamePlay() {
   const [autoSave, setAutoSave] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [vfsReady, setVfsReady] = useState(false);
+  const lastSaveRef = useRef<string>('');
 
   // --- VFS (Service Worker) 准备 ---
   const initVFS = async (gameId: string, gameUrl: string) => {
@@ -111,9 +112,11 @@ export default function GamePlay() {
         if (key) saveData[key] = iframeWindow.localStorage.getItem(key) || '';
       }
 
-      if (Object.keys(saveData).length > 0) {
-        await saveService.upload(id, saveData);
-      }
+      const currentSaveStr = JSON.stringify(saveData);
+      if (currentSaveStr === '{}' || currentSaveStr === lastSaveRef.current) return;
+
+      await saveService.upload(id, saveData);
+      lastSaveRef.current = currentSaveStr;
     } catch (e) {
       // 静默失败，不打扰用户
     }
@@ -183,6 +186,7 @@ export default function GamePlay() {
         iframeWindow.localStorage.setItem(key, value as string);
       });
 
+      lastSaveRef.current = JSON.stringify(saveData);
       message.success('存档已加载，正在重载游戏...');
       setIframeKey(prev => prev + 1);
       setMenuVisible(false);
