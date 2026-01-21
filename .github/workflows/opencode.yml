@@ -24,4 +24,6 @@ jobs:
         uses: ohmyopencode/opencode-action@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          opencode-api-key: ${{ secrets.OPENCODE_API_KEY }}
+          opencode-api-key: ${{ secrets.THIRD_PARTY_API_KEY }}
+          opencode-api-base: ${{ secrets.THIRD_PARTY_API_BASE }}
+          model: ${{ vars.THIRD_PARTY_MODEL || 'gpt-4o' }}
