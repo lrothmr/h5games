@@ -3,10 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { config } from './config/index.js';
 import { initDatabase, closeDatabase } from './config/database.js';
-import authRoutes from './routes/auth.js';
-import gameRoutes from './routes/games.js';
-import saveRoutes from './routes/saves.js';
-import adminRoutes from './routes/admin.js';
+import routes from './routes/index.js';
 import fs from 'fs';
 
 const app = express();
@@ -19,18 +16,14 @@ app.get('/api/debug', (_req, res) => {
   res.json({ 
     message: 'Backend is running', 
     timestamp: new Date().toISOString(),
-    frontendPath: config.upload.frontendPath,
-    frontendExists: fs.existsSync(config.upload.frontendPath)
+    databasePath: config.database.path
   });
 });
 
 app.use('/Games', express.static(config.upload.gamesPath));
 app.use('/images', express.static(config.upload.imagesPath));
 
-app.use('/api/auth', authRoutes);
-app.use('/api/games', gameRoutes);
-app.use('/api/saves', saveRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api', routes);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -42,17 +35,6 @@ app.use('/api', (req, res) => {
     message: `API Route not found: ${req.method} ${req.originalUrl}` 
   });
 });
-
-if (fs.existsSync(config.upload.frontendPath)) {
-  app.use(express.static(config.upload.frontendPath));
-  
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/Games') || req.path.startsWith('/images')) {
-      return next();
-    }
-    res.sendFile(path.join(config.upload.frontendPath, 'index.html'));
-  });
-}
 
 const ensureDirectories = () => {
   const dirs = [

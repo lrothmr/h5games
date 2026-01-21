@@ -57,7 +57,7 @@ export const deleteInviteCode = async (req: Request, res: Response) => {
     const { id } = req.params;
     const db = getDatabase();
     
-    db.run(`DELETE FROM invite_codes WHERE id = ${id}`);
+    db.run(`DELETE FROM invite_codes WHERE id = ?`, [id]);
     saveDatabase();
 
     return res.json({ success: true, message: '删除成功' });

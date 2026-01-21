@@ -200,18 +200,18 @@ export const userRegister = async (req: Request, res: Response) => {
 
     const db = getDatabase();
 
-    const inviteCodeResult = db.exec(`SELECT id FROM invite_codes WHERE code = '${inviteCode}' AND is_used = 0`);
+    const inviteCodeResult = db.exec(`SELECT id FROM invite_codes WHERE code = ? AND is_used = 0`, [inviteCode]);
     if (inviteCodeResult.length === 0 || inviteCodeResult[0].values.length === 0) {
       return res.status(400).json({ success: false, message: '无效或已使用的邀请码' });
     }
     const inviteCodeId = inviteCodeResult[0].values[0][0];
 
-    const existingUser = db.exec(`SELECT id FROM users WHERE username = '${username}'`);
+    const existingUser = db.exec(`SELECT id FROM users WHERE username = ?`, [username]);
     if (existingUser.length > 0 && existingUser[0].values.length > 0) {
       return res.status(400).json({ success: false, message: '用户名已存在' });
     }
 
-    const existingEmail = db.exec(`SELECT id FROM users WHERE email = '${email}'`);
+    const existingEmail = db.exec(`SELECT id FROM users WHERE email = ?`, [email]);
     if (existingEmail.length > 0 && existingEmail[0].values.length > 0) {
       return res.status(400).json({ success: false, message: '邮箱已被注册' });
     }
@@ -221,7 +221,7 @@ export const userRegister = async (req: Request, res: Response) => {
     db.run(`INSERT INTO users (username, password, email, auto_save) VALUES (?, ?, ?, ?)`, 
       [username, hashedPassword, email, 1]);
     
-    const newUserResult = db.exec(`SELECT id FROM users WHERE username = '${username}'`);
+    const newUserResult = db.exec(`SELECT id FROM users WHERE username = ?`, [username]);
     const newUserId = newUserResult[0].values[0][0];
 
     db.run(`UPDATE invite_codes SET is_used = 1, used_by_user_id = ?, used_at = CURRENT_TIMESTAMP WHERE id = ?`, 
@@ -245,7 +245,7 @@ export const userLogin = async (req: Request, res: Response) => {
     }
 
     const db = getDatabase();
-    const result = db.exec(`SELECT id, username, password FROM users WHERE username = '${username}'`);
+    const result = db.exec(`SELECT id, username, password FROM users WHERE username = ?`, [username]);
 
     if (result.length === 0 || result[0].values.length === 0) {
       return res.status(401).json({ success: false, message: '用户名或密码错误' });

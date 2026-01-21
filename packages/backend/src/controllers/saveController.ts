@@ -9,7 +9,7 @@ export const getAutoSave = async (req: AuthRequest, res: Response) => {
     }
 
     const db = getDatabase();
-    const result = db.exec(`SELECT auto_save FROM users WHERE id = ${req.user.id}`);
+    const result = db.exec(`SELECT auto_save FROM users WHERE id = ?`, [req.user.id]);
 
     if (result.length === 0 || result[0].values.length === 0) {
       return res.status(404).json({ success: false, message: '用户不存在' });
@@ -31,7 +31,7 @@ export const setAutoSave = async (req: AuthRequest, res: Response) => {
     const { autoSave } = req.body;
 
     const db = getDatabase();
-    db.run(`UPDATE users SET auto_save = ${autoSave ? 1 : 0}, updated_at = CURRENT_TIMESTAMP WHERE id = ${req.user.id}`);
+    db.run(`UPDATE users SET auto_save = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [autoSave ? 1 : 0, req.user.id]);
     saveDatabase();
 
     return res.json({ success: true, message: '设置成功' });
@@ -58,7 +58,7 @@ export const uploadSave = async (req: AuthRequest, res: Response) => {
     }
 
     const db = getDatabase();
-    const existing = db.exec(`SELECT id FROM user_saves WHERE user_id = ${req.user.id} AND game_id = '${gameId}'`);
+    const existing = db.exec(`SELECT id FROM user_saves WHERE user_id = ? AND game_id = ?`, [req.user.id, gameId]);
 
     const saveDataStr = JSON.stringify(saveData);
 
@@ -91,7 +91,7 @@ export const downloadSave = async (req: AuthRequest, res: Response) => {
     }
 
     const db = getDatabase();
-    const result = db.exec(`SELECT save_data FROM user_saves WHERE user_id = ${req.user.id} AND game_id = '${gameId}'`);
+    const result = db.exec(`SELECT save_data FROM user_saves WHERE user_id = ? AND game_id = ?`, [req.user.id, gameId]);
 
     if (result.length === 0 || result[0].values.length === 0) {
       return res.status(404).json({ success: false, message: '未找到存档数据' });
@@ -114,7 +114,7 @@ export const getAllSaves = async (req: AuthRequest, res: Response) => {
     }
 
     const db = getDatabase();
-    const result = db.exec(`SELECT game_id, updated_at FROM user_saves WHERE user_id = ${req.user.id}`);
+    const result = db.exec(`SELECT game_id, updated_at FROM user_saves WHERE user_id = ?`, [req.user.id]);
 
     const saves = result.length > 0 ? result[0].values.map((row: any[]) => ({
       gameId: row[0],

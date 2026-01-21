@@ -13,7 +13,7 @@ api.interceptors.request.use(
     const adminToken = localStorage.getItem('adminToken');
     const userToken = localStorage.getItem('userToken');
     
-    const isAdminRequest = config.url?.includes('/admin') || 
+    const isAdminRequest = config.url?.startsWith('/admin') || 
                           config.url?.startsWith('/games') ||
                           config.url?.startsWith('/invite-codes') ||
                           config.url?.startsWith('/users') ||

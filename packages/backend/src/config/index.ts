@@ -28,7 +28,6 @@ export const config = {
     gamesPath: path.resolve(__dirname, '../../..', process.env.PUBLIC_PATH || '../public', 'Games'),
     imagesPath: path.resolve(__dirname, '../../..', process.env.PUBLIC_PATH || '../public', 'images'),
     uploadsPath: path.resolve(__dirname, '../../..', process.env.PUBLIC_PATH || '../public', 'uploads'),
-    frontendPath: path.resolve(__dirname, '../../..', '../frontend/dist'),
   },
 };
 

@@ -39,8 +39,8 @@ export const getGame = async (req: Request, res: Response) => {
     const db = getDatabase();
     const result = db.exec(`
       SELECT game_id, name, url, image, pinned, open, clicks, likes, created_at 
-      FROM games WHERE game_id = '${id}'
-    `);
+      FROM games WHERE game_id = ?
+    `, [id]);
 
     if (result.length === 0 || result[0].values.length === 0) {
       return res.status(404).json({ success: false, message: '游戏不存在' });
@@ -100,22 +100,24 @@ export const updateGame = async (req: Request, res: Response) => {
     const { name, url, image, pinned, open } = req.body;
 
     const db = getDatabase();
-    const result = db.exec(`SELECT id FROM games WHERE game_id = '${id}'`);
+    const result = db.exec(`SELECT id FROM games WHERE game_id = ?`, [id]);
 
     if (result.length === 0 || result[0].values.length === 0) {
       return res.status(404).json({ success: false, message: '游戏不存在' });
     }
 
     const updates: string[] = [];
-    if (name !== undefined) updates.push(`name = '${name}'`);
-    if (url !== undefined) updates.push(`url = '${url}'`);
-    if (image !== undefined) updates.push(`image = '${image}'`);
-    if (pinned !== undefined) updates.push(`pinned = ${pinned ? 1 : 0}`);
-    if (open !== undefined) updates.push(`open = ${open ? 1 : 0}`);
+    const params: any[] = [];
+    if (name !== undefined) { updates.push(`name = ?`); params.push(name); }
+    if (url !== undefined) { updates.push(`url = ?`); params.push(url); }
+    if (image !== undefined) { updates.push(`image = ?`); params.push(image); }
+    if (pinned !== undefined) { updates.push(`pinned = ?`); params.push(pinned ? 1 : 0); }
+    if (open !== undefined) { updates.push(`open = ?`); params.push(open ? 1 : 0); }
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
 
-    if (updates.length > 0) {
-      db.run(`UPDATE games SET ${updates.join(', ')} WHERE game_id = '${id}'`);
+    if (updates.length > 1) {
+      params.push(id);
+      db.run(`UPDATE games SET ${updates.join(', ')} WHERE game_id = ?`, params);
       saveDatabase();
     }
 
@@ -131,14 +133,14 @@ export const deleteGame = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const db = getDatabase();
-    const result = db.exec(`SELECT id FROM games WHERE game_id = '${id}'`);
+    const result = db.exec(`SELECT id FROM games WHERE game_id = ?`, [id]);
 
     if (result.length === 0 || result[0].values.length === 0) {
       return res.status(404).json({ success: false, message: '游戏不存在' });
     }
 
     deleteGameFiles(id);
-    db.run(`DELETE FROM games WHERE game_id = '${id}'`);
+    db.run(`DELETE FROM games WHERE game_id = ?`, [id]);
     saveDatabase();
 
     return res.json({ success: true, message: '删除成功' });
