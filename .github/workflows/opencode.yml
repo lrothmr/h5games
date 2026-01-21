@@ -21,9 +21,10 @@ jobs:
           fetch-depth: 0
 
       - name: Run OpenCode
-        uses: ohmyopencode/opencode-action@v1
+        uses: anomalyco/opencode/github@latest
+        env:
+          OPENAI_API_KEY: ${{ secrets.THIRD_PARTY_API_KEY }}
+          OPENAI_BASE_URL: ${{ secrets.THIRD_PARTY_API_BASE }}
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          opencode-api-key: ${{ secrets.THIRD_PARTY_API_KEY }}
-          opencode-api-base: ${{ secrets.THIRD_PARTY_API_BASE }}
-          model: ${{ vars.THIRD_PARTY_MODEL || 'gpt-4o' }}
+          model: ${{ vars.THIRD_PARTY_MODEL || 'openai/gpt-4o' }}
+          use_github_token: "true"
