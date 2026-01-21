@@ -15,7 +15,7 @@ export const getInviteCodes = async (_req: Request, res: Response) => {
       ORDER BY i.created_at DESC
     `);
 
-    let codes = [];
+    let codes: any[] = [];
     if (result && result.length > 0 && result[0].values) {
       codes = result[0].values.map((row: any[]) => ({
         id: row[0],
@@ -38,7 +38,7 @@ export const generateInviteCode = async (req: Request, res: Response) => {
   try {
     const { count = 1 } = req.body;
     const db = getDatabase();
-    const codes = [];
+    const codes: string[] = [];
 
     const stmt = db.prepare("INSERT INTO invite_codes (code) VALUES (?)");
     
@@ -82,7 +82,7 @@ export const getUsers = async (_req: Request, res: Response) => {
       ORDER BY created_at DESC
     `);
 
-    let users = [];
+    let users: any[] = [];
     if (result && result.length > 0 && result[0].values) {
       users = result[0].values.map((row: any[]) => ({
         id: row[0],

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Input, Row, Col, Card, Tag, Space, Typography, Empty, Badge, Button, Avatar, Dropdown } from 'antd';
+import { Input, Row, Col, Card, Tag, Space, Typography, Empty, Badge, Button, Avatar, Dropdown, Spin } from 'antd';
 import { SearchOutlined, FireOutlined, UserOutlined, LogoutOutlined, LoginOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { gameService, Game } from '../../services/gameService';
@@ -133,7 +133,11 @@ export default function Home() {
         </div>
 
         <Row gutter={[24, 24]}>
-          {filteredGames.length > 0 ? (
+          {loading ? (
+            <div style={{ width: '100%', padding: '100px', textAlign: 'center' }}>
+              <Spin size="large" />
+            </div>
+          ) : filteredGames.length > 0 ? (
             filteredGames.map((game) => (
               <Col xs={12} sm={8} md={6} lg={4} key={game.id}>
                 <Badge.Ribbon 

@@ -52,6 +52,7 @@ const ensureDirectories = () => {
     config.upload.gamesPath,
     config.upload.imagesPath,
     config.upload.uploadsPath,
+    path.join(config.upload.uploadsPath, 'temp'),
     path.dirname(config.database.path),
   ];
 

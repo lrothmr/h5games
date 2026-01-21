@@ -175,6 +175,7 @@ export const uploadGame = async (req: Request, res: Response) => {
     const result = await extractGameZip(zipPath, gameId);
 
     if (!result.success) {
+      console.error('Extraction failed:', result.error);
       return res.status(400).json({ success: false, message: result.error || '解压失败' });
     }
 
@@ -222,7 +223,7 @@ export const uploadGameChunk = async (req: Request, res: Response) => {
     if (!req.file) return res.status(400).json({ success: false, message: '请上传文件分片' });
     const { uploadId, chunkIndex } = req.body;
     if (!uploadId || chunkIndex === undefined) {
-      fs.unlinkSync(req.file.path);
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
       return res.status(400).json({ success: false, message: '缺少必要参数' });
     }
     const tempDir = path.join(config.upload.uploadsPath, 'temp', uploadId);
@@ -232,8 +233,8 @@ export const uploadGameChunk = async (req: Request, res: Response) => {
     return res.json({ success: true, message: '分片上传成功' });
   } catch (error) {
     console.error('Upload chunk error:', error);
-    if (req.file) fs.unlinkSync(req.file.path);
-    return res.status(500).json({ success: false, message: '服务器内部错误' });
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    return res.status(500).json({ success: false, message: error instanceof Error ? error.message : '服务器内部错误' });
   }
 };
 
@@ -252,12 +253,15 @@ export const mergeGameChunks = async (req: Request, res: Response) => {
       writeStream.write(fs.readFileSync(chunkPath));
     }
     writeStream.end();
-    await new Promise((r) => writeStream.on('finish', r));
+    await new Promise<void>((r) => writeStream.on('finish', () => r()));
     fs.rmSync(tempDir, { recursive: true });
 
     const gameId = req.body.gameId || `H${String(Date.now()).slice(-6)}`;
     const result = await extractGameZip(zipPath, gameId);
-    if (!result.success) return res.status(400).json({ success: false, message: result.error });
+    if (!result.success) {
+      console.error('Merge extraction failed:', result.error);
+      return res.status(400).json({ success: false, message: result.error });
+    }
 
     let finalName = (name && name.trim()) ? name : (result.title || fileName.replace(/\.zip$/i, ''));
     const db = getDatabase();

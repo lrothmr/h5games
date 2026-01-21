@@ -27,7 +27,7 @@ export default function InviteCodes() {
 
   const handleGenerate = async () => {
     try {
-      await adminService.generateInviteCodes(generateCount);
+      await adminService.generateInviteCode(generateCount);
       message.success(`成功生成 ${generateCount} 个邀请码`);
       setModalVisible(false);
       fetchData();

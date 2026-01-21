@@ -32,6 +32,11 @@ export const adminService = {
     await api.delete(`/admin/invite-codes/${id}`);
   },
 
+  async getUsers(): Promise<User[]> {
+    const response = await api.get('/admin/users');
+    return response.data.data;
+  },
+
   async getMfaStatus() {
     const response = await api.get('/admin/mfa/status');
     return response.data;

@@ -132,7 +132,7 @@ export const extractGameZip = async (
     }
 
     // --- 新增：生成带偏移量的索引包 ---
-    const files = [];
+    const files: any[] = [];
     let currentOffset = 0;
     const pkgPath = path.join(gameDir, 'game.core');
     const pkgStream = fs.createWriteStream(pkgPath);

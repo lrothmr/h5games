@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Spin, message, Dropdown, Modal, Switch, Space } from 'antd';
+import { Button, Spin, message, Dropdown, Switch, Space } from 'antd';
 import {
   HomeOutlined,
   ReloadOutlined,
@@ -143,7 +143,7 @@ export default function GamePlay() {
     }
   };
 
-  const menuItems = [
+  const menuItems: any[] = [
     {
       key: 'fullscreen',
       icon: isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />,
@@ -167,7 +167,7 @@ export default function GamePlay() {
       onClick: handleCloudLoad,
     },
     {
-      key: 'divider1',
+      key: 'divider2',
       type: 'divider',
     },
     {
@@ -194,7 +194,7 @@ export default function GamePlay() {
     },
   ];
 
-  if (loading) {
+  if (loading || !game) {
     return (
       <div
         style={{
