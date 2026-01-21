@@ -1,0 +1,29 @@
+{
+  "name": "mygames-v2",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MyGames V2 - 游戏管理平台",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev -w packages/backend",
+    "dev:frontend": "npm run dev -w packages/frontend",
+    "build": "npm run build -w packages/backend && npm run build -w packages/frontend",
+    "build:backend": "npm run build -w packages/backend",
+    "build:frontend": "npm run build -w packages/frontend",
+    "start": "npm run start -w packages/backend",
+    "db:migrate": "npm run db:migrate -w packages/backend",
+    "db:seed": "npm run db:seed -w packages/backend",
+    "install:all": "npm install",
+    "clean": "rimraf node_modules \"packages/*/node_modules\" \"packages/*/dist\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

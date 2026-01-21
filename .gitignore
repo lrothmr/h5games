@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+*.log
+data/
+public/Games/*
+!public/Games/.gitkeep
+public/images/*
+!public/images/.gitkeep
+public/uploads/*
+!public/uploads/.gitkeep
+.DS_Store
+*.local
