@@ -54,22 +54,25 @@ export const initDatabase = async (): Promise<Database> => {
 
   // 确保旧数据库也有 category 和 liked_devices 字段
   const tableInfo = db.exec("PRAGMA table_info(games)");
-  const columns = tableInfo[0].values.map(v => v[1]);
-  if (!columns.includes('category')) {
-    try {
-      db.run("ALTER TABLE games ADD COLUMN category VARCHAR(50) DEFAULT '其他'");
-      console.log('Successfully added category column to games table');
-    } catch (e) {
-      console.error('Failed to add category column:', e);
+  if (tableInfo.length > 0 && tableInfo[0].values) {
+    const columns = tableInfo[0].values.map(v => v[1]);
+    
+    if (!columns.includes('category')) {
+      try {
+        db.run("ALTER TABLE games ADD COLUMN category VARCHAR(50) DEFAULT '其他'");
+        console.log('Successfully added category column to games table');
+      } catch (e) {
+        console.error('Failed to add category column:', e);
+      }
     }
-  }
 
-  if (!columns.includes('liked_devices')) {
-    try {
-      db.run("ALTER TABLE games ADD COLUMN liked_devices TEXT DEFAULT '[]'");
-      console.log('Successfully added liked_devices column to games table');
-    } catch (e) {
-      console.error('Failed to add liked_devices column:', e);
+    if (!columns.includes('liked_devices')) {
+      try {
+        db.run("ALTER TABLE games ADD COLUMN liked_devices TEXT DEFAULT '[]'");
+        console.log('Successfully added liked_devices column to games table');
+      } catch (e) {
+        console.error('Failed to add liked_devices column:', e);
+      }
     }
   }
 

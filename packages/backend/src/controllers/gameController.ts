@@ -163,21 +163,18 @@ export const uploadGame = async (req: Request, res: Response) => {
     const gameId = req.body.gameId || `H${String(Date.now()).slice(-6)}`;
     const zipPath = req.file.path;
 
+    console.log(`Uploading game ${gameId}, zip: ${zipPath}`);
     const result = await extractGameZip(zipPath, gameId);
 
     if (!result.success) {
-      console.error('Extraction failed:', result.error);
+      console.error(`Extraction failed for ${gameId}:`, result.error);
       return res.status(400).json({ success: false, message: result.error || '解压失败' });
     }
 
-    let finalName = '未命名游戏';
-    if (name && name.trim()) {
-      finalName = name.trim();
-    } else if (result.title) {
-      finalName = result.title;
-    } else {
-      finalName = req.file.originalname.replace(/\.zip$/i, '');
-    }
+    const finalName = (name && name.trim()) ? name : (result.title || req.file.originalname.replace(/\.zip$/i, ''));
+    const isPinned = (pinned === 'true' || pinned === true) ? 1 : 0;
+    const isOpen = (open === 'false' || open === false) ? 0 : 1;
+    const finalCategory = category || '其他';
 
     const db = getDatabase();
     const checkStmt = db.prepare("SELECT id FROM games WHERE game_id = ?");
@@ -186,15 +183,17 @@ export const uploadGame = async (req: Request, res: Response) => {
     checkStmt.free();
 
     if (exists) {
+      console.log(`Updating existing game: ${gameId}`);
       db.run(`
         UPDATE games SET name = ?, url = ?, image = ?, pinned = ?, open = ?, category = ?, liked_devices = ?, updated_at = CURRENT_TIMESTAMP 
         WHERE game_id = ?
-      `, [finalName, result.gameDir, result.imagePath || null, (pinned === 'true' || pinned === true) ? 1 : 0, (open !== 'false' && open !== false) ? 1 : 0, category || '其他', '[]', gameId]);
+      `, [finalName, result.gameDir, result.imagePath || null, isPinned, isOpen, finalCategory, '[]', gameId]);
     } else {
+      console.log(`Inserting new game: ${gameId}`);
       db.run(`
         INSERT INTO games (game_id, name, url, image, pinned, open, liked_devices, category) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, [gameId, finalName, result.gameDir, result.imagePath || null, (pinned === 'true' || pinned === true) ? 1 : 0, (open !== 'false' && open !== false) ? 1 : 0, '[]', category || '其他']);
+      `, [gameId, finalName, result.gameDir, result.imagePath || null, isPinned, isOpen, '[]', finalCategory]);
     }
     saveDatabase();
 
@@ -237,24 +236,34 @@ export const mergeGameChunks = async (req: Request, res: Response) => {
     }
     const tempDir = path.join(config.upload.uploadsPath, 'temp', uploadId);
     const zipPath = path.join(config.upload.uploadsPath, `${uploadId}-${fileName}`);
-    const writeStream = fs.createWriteStream(zipPath);
+    
+    // 使用同步方式合并，更可靠
+    if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
     for (let i = 0; i < totalChunks; i++) {
       const chunkPath = path.join(tempDir, `${i}`);
-      if (!fs.existsSync(chunkPath)) return res.status(400).json({ success: false, message: `缺少分片 ${i}` });
-      writeStream.write(fs.readFileSync(chunkPath));
+      if (!fs.existsSync(chunkPath)) {
+        console.error(`Chunk missing: ${i} at ${chunkPath}`);
+        return res.status(400).json({ success: false, message: `缺少分片 ${i}` });
+      }
+      fs.appendFileSync(zipPath, fs.readFileSync(chunkPath));
     }
-    writeStream.end();
-    await new Promise<void>((r) => writeStream.on('finish', () => r()));
+    
     fs.rmSync(tempDir, { recursive: true });
 
     const gameId = req.body.gameId || `H${String(Date.now()).slice(-6)}`;
+    console.log(`Starting extraction for game ${gameId}, zip: ${zipPath}`);
+    
     const result = await extractGameZip(zipPath, gameId);
     if (!result.success) {
       console.error('Merge extraction failed:', result.error);
       return res.status(400).json({ success: false, message: result.error });
     }
 
-    let finalName = (name && name.trim()) ? name : (result.title || fileName.replace(/\.zip$/i, ''));
+    const finalName = (name && name.trim()) ? name : (result.title || fileName.replace(/\.zip$/i, ''));
+    const isPinned = (pinned === 'true' || pinned === true) ? 1 : 0;
+    const isOpen = (open === 'false' || open === false) ? 0 : 1;
+    const finalCategory = category || '其他';
+
     const db = getDatabase();
     const checkStmt = db.prepare("SELECT id FROM games WHERE game_id = ?");
     checkStmt.bind([gameId]);
@@ -262,16 +271,18 @@ export const mergeGameChunks = async (req: Request, res: Response) => {
     checkStmt.free();
 
     if (exists) {
+      console.log(`Updating existing game: ${gameId}`);
       db.run(`UPDATE games SET name=?, url=?, image=?, pinned=?, open=?, category=?, liked_devices=?, updated_at=CURRENT_TIMESTAMP WHERE game_id=?`, 
-        [finalName, result.gameDir, result.imagePath || null, pinned ? 1 : 0, open !== false ? 1 : 0, category || '其他', '[]', gameId]);
+        [finalName, result.gameDir, result.imagePath || null, isPinned, isOpen, finalCategory, '[]', gameId]);
     } else {
+      console.log(`Inserting new game: ${gameId}`);
       db.run(`INSERT INTO games (game_id, name, url, image, pinned, open, liked_devices, category) VALUES (?,?,?,?,?,?,?,?)`, 
-        [gameId, finalName, result.gameDir, result.imagePath || null, pinned ? 1 : 0, open !== false ? 1 : 0, '[]', category || '其他']);
+        [gameId, finalName, result.gameDir, result.imagePath || null, isPinned, isOpen, '[]', finalCategory]);
     }
     saveDatabase();
     return res.json({ success: true, message: '合并成功', data: { id: gameId, name: finalName } });
   } catch (error) {
-    console.error('Merge error:', error);
+    console.error('Merge error details:', error);
     return res.status(500).json({ success: false, message: error instanceof Error ? error.message : '服务器内部错误' });
   }
 };
