@@ -9,6 +9,7 @@ import {
   message,
   Input,
   Switch,
+  Tooltip,
 } from 'antd';
 import {
   PlusOutlined,
@@ -17,6 +18,7 @@ import {
   EyeOutlined,
   SearchOutlined,
   PushpinOutlined,
+  FolderOpenOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { gameService, Game } from '../../services/gameService';
@@ -153,6 +155,13 @@ export default function GameList() {
             icon={<EyeOutlined />}
             onClick={() => window.open(record.url, '_blank')}
           />
+          <Tooltip title="文件管理">
+            <Button
+              type="text"
+              icon={<FolderOpenOutlined />}
+              onClick={() => navigate(`/admin/games/${record.id}/files`)}
+            />
+          </Tooltip>
           <Button
             type="text"
             icon={<PushpinOutlined />}

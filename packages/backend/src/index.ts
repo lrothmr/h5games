@@ -20,6 +20,17 @@ app.get('/api/debug', (_req, res) => {
   });
 });
 
+// 防止下载工具拦截：拦截游戏资源包请求并设置响应头
+app.use('/Games', (req, res, next) => {
+  if (req.url.endsWith('game.core')) {
+    res.setHeader('Content-Disposition', 'inline');
+    res.setHeader('Content-Type', 'application/octet-stream');
+    // 增加特征标识，告诉前端这是 VFS 请求
+    res.setHeader('X-VFS-Response', 'true');
+  }
+  next();
+});
+
 app.use('/Games', express.static(config.upload.gamesPath));
 app.use('/images', express.static(config.upload.imagesPath));
 

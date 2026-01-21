@@ -3,11 +3,10 @@ dist
 .env
 *.log
 data/
-public/Games/*
-!public/Games/.gitkeep
-public/images/*
-!public/images/.gitkeep
-public/uploads/*
-!public/uploads/.gitkeep
+public/Games/
+public/images/
+public/uploads/
 .DS_Store
 *.local
+ready_to_upload/
+*.zip

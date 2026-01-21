@@ -8,6 +8,7 @@ import GameUpload from './pages/admin/GameUpload';
 import InviteCodes from './pages/admin/InviteCodes';
 import UserList from './pages/admin/UserList';
 import MfaSetup from './pages/admin/MfaSetup';
+import FileManager from './pages/admin/FileManager';
 import Home from './pages/user/Home';
 import GamePlay from './pages/user/GamePlay';
 import { useAdminStore } from './stores/adminStore';
@@ -44,6 +45,7 @@ function App() {
         <Route path="games" element={<GameList />} />
         <Route path="games/new" element={<GameUpload />} />
         <Route path="games/:id/edit" element={<GameEdit />} />
+        <Route path="games/:id/files" element={<FileManager />} />
         <Route path="invite-codes" element={<InviteCodes />} />
         <Route path="users" element={<UserList />} />
         <Route path="mfa" element={<MfaSetup />} />

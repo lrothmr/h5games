@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { Layout, Menu, Button, theme, Avatar, Dropdown } from 'antd';
+import { Layout, Menu, Button, theme, Avatar, Dropdown, Alert } from 'antd';
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -11,17 +11,35 @@ import {
   KeyOutlined,
   TeamOutlined,
   SafetyCertificateOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
 import { useAdminStore } from '../stores/adminStore';
+import { adminService } from '../services/adminService';
 
 const { Header, Sider, Content } = Layout;
 
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const [mfaNeeded, setMfaNeeded] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { username, logout } = useAdminStore();
   const { token: themeToken } = theme.useToken();
+
+  useEffect(() => {
+    checkMfaStatus();
+  }, []);
+
+  const checkMfaStatus = async () => {
+    try {
+      const res = await adminService.getMfaStatus();
+      if (!res.enabled) {
+        setMfaNeeded(true);
+      }
+    } catch (err) {
+      console.error('检查 MFA 状态失败');
+    }
+  };
 
   const menuItems = [
     {
@@ -99,14 +117,31 @@ export default function AdminLayout() {
             alignItems: 'center',
             justifyContent: 'space-between',
             boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+            zIndex: 1,
           }}
         >
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{ fontSize: 16, width: 64, height: 64 }}
-          />
+          <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{ fontSize: 16, width: 64, height: 64 }}
+            />
+            {mfaNeeded && location.pathname !== '/admin/mfa' && (
+              <Alert
+                message="安全提醒：您尚未开启 MFA 二步验证，建议立即配置以保障账户安全。"
+                type="warning"
+                showIcon
+                icon={<WarningOutlined />}
+                action={
+                  <Button size="small" type="primary" onClick={() => navigate('/admin/mfa')}>
+                    立即配置
+                  </Button>
+                }
+                style={{ marginLeft: 24, padding: '4px 15px' }}
+              />
+            )}
+          </div>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Avatar icon={<UserOutlined />} />

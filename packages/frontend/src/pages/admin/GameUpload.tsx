@@ -11,18 +11,21 @@ import {
   message,
   Space,
   Alert,
+  Select,
 } from 'antd';
 import { InboxOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
 import { gameService } from '../../services/gameService';
 
 const { Dragger } = Upload;
+const { Option } = Select;
 
 interface UploadFormValues {
   name: string;
   gameId?: string;
   pinned: boolean;
   open: boolean;
+  category: string;
 }
 
 export default function GameUpload() {
@@ -43,8 +46,7 @@ export default function GameUpload() {
         return false;
       }
       setFile(file);
-      const name = file.name.replace('.zip', '');
-      form.setFieldValue('name', name);
+      // 不再自动填充名称，让后端从 index.html 提取
       return false;
     },
     onRemove: () => {
@@ -70,6 +72,7 @@ export default function GameUpload() {
           gameId: values.gameId,
           pinned: values.pinned,
           open: values.open,
+          category: values.category,
         },
         (percent) => setProgress(percent)
       );
@@ -114,7 +117,7 @@ export default function GameUpload() {
           form={form}
           layout="vertical"
           onFinish={onFinish}
-          initialValues={{ pinned: false, open: true }}
+          initialValues={{ pinned: false, open: true, category: '休闲' }}
         >
           <Form.Item label="游戏文件" required>
             <Dragger {...uploadProps} disabled={uploading}>
@@ -135,9 +138,21 @@ export default function GameUpload() {
           <Form.Item
             label="游戏名称"
             name="name"
-            rules={[{ required: true, message: '请输入游戏名称' }]}
+            tooltip="可选，留空则自动读取压缩包内的 index.html 标题"
           >
-            <Input placeholder="请输入游戏名称" />
+            <Input placeholder="可选，留空自动读取标题" />
+          </Form.Item>
+
+          <Form.Item
+            label="游戏分类"
+            name="category"
+            rules={[{ required: true, message: '请选择分类' }]}
+          >
+            <Select placeholder="请选择游戏分类">
+              {['动作', '冒险', '休闲', '益智', '体育', '射击', '其他'].map(cat => (
+                <Option key={cat} value={cat}>{cat}</Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <Form.Item

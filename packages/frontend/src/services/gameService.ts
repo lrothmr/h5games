@@ -10,6 +10,7 @@ export interface Game {
   createdAt: string;
   clicks: number;
   likes: number;
+  category: string;
 }
 
 export interface GameFormData {
@@ -18,6 +19,7 @@ export interface GameFormData {
   image?: string;
   pinned?: boolean;
   open?: boolean;
+  category?: string;
 }
 
 export const gameService = {
@@ -47,7 +49,7 @@ export const gameService = {
 
   async upload(
     file: File,
-    data: { name: string; gameId?: string; pinned?: boolean; open?: boolean },
+    data: { name: string; gameId?: string; pinned?: boolean; open?: boolean; category?: string },
     onProgress?: (percent: number) => void
   ): Promise<Game> {
     const CHUNK_SIZE = 5 * 1024 * 1024;
@@ -57,10 +59,11 @@ export const gameService = {
     if (totalChunks <= 1) {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('name', data.name);
+      if (data.name) formData.append('name', data.name);
       if (data.gameId) formData.append('gameId', data.gameId);
       if (data.pinned !== undefined) formData.append('pinned', String(data.pinned));
       if (data.open !== undefined) formData.append('open', String(data.open));
+      if (data.category) formData.append('category', data.category);
 
       const response = await api.post('/games/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -98,10 +101,11 @@ export const gameService = {
       uploadId,
       fileName: file.name,
       totalChunks,
-      name: data.name,
+      name: data.name || '',
       gameId: data.gameId,
       pinned: data.pinned,
       open: data.open,
+      category: data.category,
     });
 
     return response.data.data;

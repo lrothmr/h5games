@@ -45,11 +45,26 @@ export const initDatabase = async (): Promise<Database> => {
       open INTEGER DEFAULT 1,
       clicks INTEGER DEFAULT 0,
       likes INTEGER DEFAULT 0,
-      liked_devices TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      category VARCHAR(50) DEFAULT '其他'
     )
   `);
+
+  // 确保旧数据库也有 category 字段
+  const tableInfo = db.exec("PRAGMA table_info(games)");
+  const columns = tableInfo[0].values.map(v => v[1]);
+  if (!columns.includes('category')) {
+    try {
+      db.run("ALTER TABLE games ADD COLUMN category VARCHAR(50) DEFAULT '其他'");
+      saveDatabase();
+      console.log('Successfully added category column to games table');
+    } catch (e) {
+      console.error('Failed to add category column:', e);
+    }
+  }
+
+
 
   db.run(`
     CREATE TABLE IF NOT EXISTS user_saves (

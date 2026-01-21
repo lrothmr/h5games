@@ -8,6 +8,7 @@ export interface ExtractResult {
   gameDir: string;
   imagePath?: string;
   error?: string;
+  title?: string;
 }
 
 export const extractGameZip = async (
@@ -62,6 +63,17 @@ export const extractGameZip = async (
       }
 
       fs.writeFileSync(fullPath, entry.getData());
+    }
+
+    // --- 新增：从 index.html 提取标题 ---
+    let extractedName: string | undefined;
+    const indexPath = path.join(gameDir, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      const htmlContent = fs.readFileSync(indexPath, 'utf-8');
+      const titleMatch = htmlContent.match(/<title>(.*?)<\/title>/i);
+      if (titleMatch && titleMatch[1]) {
+        extractedName = titleMatch[1].trim();
+      }
     }
 
     const assetsDir = path.join(gameDir, 'assets');
@@ -119,12 +131,59 @@ export const extractGameZip = async (
       imagePath = `/images/${gameId}${ext}`;
     }
 
+    // --- 新增：生成带偏移量的索引包 ---
+    const files = [];
+    let currentOffset = 0;
+    const pkgPath = path.join(gameDir, 'game.core');
+    const pkgStream = fs.createWriteStream(pkgPath);
+
+    const generatePackage = (dir: string, baseDir: string) => {
+      const list = fs.readdirSync(dir);
+      for (const file of list) {
+        const fullPath = path.join(dir, file);
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          generatePackage(fullPath, baseDir);
+        } else {
+          if (file !== 'manifest.json' && file !== 'game.core' && file !== 'game.pkg' && file !== 'game.dat') {
+            const relativePath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
+            const data = fs.readFileSync(fullPath);
+            const size = data.length;
+            
+            files.push({
+              p: relativePath,  // path
+              o: currentOffset, // offset
+              s: size           // size
+            });
+            
+            pkgStream.write(data);
+            currentOffset += size;
+          }
+        }
+      }
+    };
+
+    generatePackage(gameDir, gameDir);
+    pkgStream.end();
+
+    // 写入清单文件
+    fs.writeFileSync(
+      path.join(gameDir, 'manifest.json'),
+      JSON.stringify({ 
+        gameId, 
+        files, 
+        v: Date.now() 
+      })
+    );
+
     fs.unlinkSync(zipPath);
+    // 移除之前的 game.dat 逻辑，改用 pkg
 
     return {
       success: true,
       gameDir: `/Games/${gameId}`,
       imagePath,
+      title: extractedName,
     };
   } catch (error) {
     if (fs.existsSync(zipPath)) {
