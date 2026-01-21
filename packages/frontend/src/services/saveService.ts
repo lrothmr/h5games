@@ -2,8 +2,7 @@ import api from './api';
 
 export const saveService = {
   async upload(gameId: string, saveData: any) {
-    const response = await api.post('/saves', {
-      action: 'upload',
+    const response = await api.post('/saves/upload', {
       gameId,
       saveData
     });
@@ -11,25 +10,21 @@ export const saveService = {
   },
 
   async download(gameId: string) {
-    const response = await api.post('/saves', {
-      action: 'download',
+    const response = await api.post('/saves/download', {
       gameId
     });
     return response.data.data?.saveData;
   },
 
   async setAutoSave(autoSave: boolean) {
-    const response = await api.post('/saves', {
-      action: 'set_auto_save',
+    const response = await api.post('/saves/auto-save', {
       autoSave
     });
     return response.data;
   },
 
   async getAutoSave() {
-    const response = await api.post('/saves', {
-      action: 'get_auto_save'
-    });
+    const response = await api.get('/saves/auto-save');
     return response.data.data?.autoSave;
   }
 };

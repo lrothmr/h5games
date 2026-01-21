@@ -196,9 +196,9 @@ export const uploadGame = async (req: Request, res: Response) => {
 
     if (exists) {
       db.run(`
-        UPDATE games SET name = ?, url = ?, image = ?, pinned = ?, open = ?, category = ?, updated_at = CURRENT_TIMESTAMP 
+        UPDATE games SET name = ?, url = ?, image = ?, pinned = ?, open = ?, category = ?, liked_devices = ?, updated_at = CURRENT_TIMESTAMP 
         WHERE game_id = ?
-      `, [finalName, result.gameDir, result.imagePath || null, (pinned === 'true' || pinned === true) ? 1 : 0, (open !== 'false' && open !== false) ? 1 : 0, category || '其他', gameId]);
+      `, [finalName, result.gameDir, result.imagePath || null, (pinned === 'true' || pinned === true) ? 1 : 0, (open !== 'false' && open !== false) ? 1 : 0, category || '其他', '[]', gameId]);
     } else {
       db.run(`
         INSERT INTO games (game_id, name, url, image, pinned, open, liked_devices, category) 
@@ -271,8 +271,8 @@ export const mergeGameChunks = async (req: Request, res: Response) => {
     checkStmt.free();
 
     if (exists) {
-      db.run(`UPDATE games SET name=?, url=?, image=?, pinned=?, open=?, category=?, updated_at=CURRENT_TIMESTAMP WHERE game_id=?`, 
-        [finalName, result.gameDir, result.imagePath || null, pinned ? 1 : 0, open !== false ? 1 : 0, category || '其他', gameId]);
+      db.run(`UPDATE games SET name=?, url=?, image=?, pinned=?, open=?, category=?, liked_devices=?, updated_at=CURRENT_TIMESTAMP WHERE game_id=?`, 
+        [finalName, result.gameDir, result.imagePath || null, pinned ? 1 : 0, open !== false ? 1 : 0, category || '其他', '[]', gameId]);
     } else {
       db.run(`INSERT INTO games (game_id, name, url, image, pinned, open, liked_devices, category) VALUES (?,?,?,?,?,?,?,?)`, 
         [gameId, finalName, result.gameDir, result.imagePath || null, pinned ? 1 : 0, open !== false ? 1 : 0, '[]', category || '其他']);
@@ -281,7 +281,7 @@ export const mergeGameChunks = async (req: Request, res: Response) => {
     return res.json({ success: true, message: '合并成功', data: { id: gameId, name: finalName } });
   } catch (error) {
     console.error('Merge error:', error);
-    return res.status(500).json({ success: false, message: '服务器内部错误' });
+    return res.status(500).json({ success: false, message: error instanceof Error ? error.message : '服务器内部错误' });
   }
 };
 

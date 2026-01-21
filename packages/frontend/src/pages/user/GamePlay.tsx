@@ -27,6 +27,33 @@ export default function GamePlay() {
   const [iframeKey, setIframeKey] = useState(0);
   const [autoSave, setAutoSave] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [vfsReady, setVfsReady] = useState(false);
+
+  // --- VFS (Service Worker) 准备 ---
+  const initVFS = async (gameId: string, gameUrl: string) => {
+    if (!('serviceWorker' in navigator)) return;
+
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      await navigator.serviceWorker.ready;
+
+      const sw = registration.active || navigator.serviceWorker.controller;
+      if (sw) {
+        sw.postMessage({ type: 'INIT_VFS', gameId, gameUrl });
+      }
+
+      const messageHandler = (event: MessageEvent) => {
+        if (event.data.type === 'VFS_READY' && event.data.gameId === gameId) {
+          setVfsReady(true);
+          message.success('高速加载就绪');
+          window.removeEventListener('message', messageHandler);
+        }
+      };
+      window.addEventListener('message', messageHandler);
+    } catch (err) {
+      console.error('VFS registration failed:', err);
+    }
+  };
 
   // --- 全屏逻辑 ---
   const toggleFullscreen = () => {
@@ -61,13 +88,44 @@ export default function GamePlay() {
     }
   }, [id, isAuthenticated]);
 
+  // --- 自动存档定时器 ---
+  useEffect(() => {
+    if (!autoSave || !id || !iframeRef.current) return;
+
+    const timer = setInterval(() => {
+      syncToCloudQuietly();
+    }, 30000); // 每 30 秒同步一次
+
+    return () => clearInterval(timer);
+  }, [autoSave, id]);
+
+  const syncToCloudQuietly = async () => {
+    if (!iframeRef.current || !id) return;
+    try {
+      const iframeWindow = iframeRef.current.contentWindow;
+      if (!iframeWindow) return;
+      
+      const saveData: Record<string, string> = {};
+      for (let i = 0; i < iframeWindow.localStorage.length; i++) {
+        const key = iframeWindow.localStorage.key(i);
+        if (key) saveData[key] = iframeWindow.localStorage.getItem(key) || '';
+      }
+
+      if (Object.keys(saveData).length > 0) {
+        await saveService.upload(id, saveData);
+      }
+    } catch (e) {
+      // 静默失败，不打扰用户
+    }
+  };
+
   const fetchGame = async () => {
     if (!id) return;
     try {
       const data = await gameService.getById(id);
       setGame(data);
-      // 临时跳过 VFS 准备
-      // await prepareVFS(id, data.url);
+      // 初始化 VFS
+      await initVFS(id, data.url);
     } catch {
       message.error('游戏不存在');
       navigate('/');

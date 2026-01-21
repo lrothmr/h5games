@@ -165,6 +165,7 @@ export const extractGameZip = async (
 
     generatePackage(gameDir, gameDir);
     pkgStream.end();
+    await new Promise<void>((resolve) => pkgStream.on('finish', () => resolve()));
 
     // 写入清单文件
     fs.writeFileSync(
