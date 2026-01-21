@@ -47,6 +47,15 @@ app.use('/api', (req, res) => {
   });
 });
 
+// Error handling middleware
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Global error handler:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || '服务器内部错误'
+  });
+});
+
 const ensureDirectories = () => {
   const dirs = [
     config.upload.gamesPath,

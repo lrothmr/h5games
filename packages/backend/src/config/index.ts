@@ -8,7 +8,7 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   
   database: {
-    path: process.env.DB_PATH || path.resolve(__dirname, '../../../data/mygames.db'),
+    path: process.env.DB_PATH || path.resolve(process.cwd(), 'data/mygames.db'),
   },
   
   admin: {
@@ -24,10 +24,10 @@ export const config = {
   
   upload: {
     maxSize: parseInt(process.env.UPLOAD_MAX_SIZE || '104857600', 10),
-    publicPath: path.resolve(__dirname, '../../..', process.env.PUBLIC_PATH || '../public'),
-    gamesPath: path.resolve(__dirname, '../../..', process.env.PUBLIC_PATH || '../public', 'Games'),
-    imagesPath: path.resolve(__dirname, '../../..', process.env.PUBLIC_PATH || '../public', 'images'),
-    uploadsPath: path.resolve(__dirname, '../../..', process.env.PUBLIC_PATH || '../public', 'uploads'),
+    publicPath: path.resolve(process.cwd(), process.env.PUBLIC_PATH || 'public'),
+    gamesPath: path.resolve(process.cwd(), process.env.PUBLIC_PATH || 'public', 'Games'),
+    imagesPath: path.resolve(process.cwd(), process.env.PUBLIC_PATH || 'public', 'images'),
+    uploadsPath: path.resolve(process.cwd(), process.env.PUBLIC_PATH || 'public', 'uploads'),
   },
 };
 
