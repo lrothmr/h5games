@@ -1,204 +1,114 @@
-# MyGames V2
+# MyGames V2 - 摸鱼游戏管理平台
 
-游戏管理平台 - 使用 React + Node.js + SQLite 重构
+MyGames V2 是一个基于 React + Node.js + SQLite 构建的高性能 H5 游戏管理平台。它不仅支持游戏的上传、展示和在线游玩，还集成了完善的用户系统、云存档功能以及企业级的安全防护机制。
 
-## 技术栈
+## 🌟 核心特性
 
-### 前端
-- React 18 + TypeScript
-- Vite
-- Ant Design 5
-- React Router 6
-- Axios
-- Zustand (状态管理)
+### 🎮 游戏管理
+- **极速上传**：支持 ZIP 压缩包一键上传，系统自动解压并分类资源。
+- **大文件支持**：内置**切片上传**机制，支持最高 **2GB** 的超大游戏文件，并提供实时进度反馈。
+- **智能兼容**：自动修复 Cocos Creator 等引擎的目录结构问题（如 `assets/internal` 路径修正）。
+- **统计分析**：实时记录游戏点击量、点赞数，支持置顶管理。
 
-### 后端
-- Node.js + Express
-- TypeScript
-- SQLite + TypeORM (better-sqlite3)
-- JWT 认证
-- Multer (文件上传)
-- Adm-zip (ZIP 解压)
+### 🛡️ 安全与认证
+- **双重验证 (MFA)**：管理员后台支持 **TOTP (Google Authenticator)** 二步验证，极大提升账户安全性。
+- **邀请注册制**：用户注册需凭**唯一邀请码**，邀请码支持后台批量生成与管理。
+- **强制改密**：管理员首次登录必须修改默认密码，确保初始环境安全。
+- **JWT 鉴权**：全站接口基于 JWT 令牌，支持管理员与普通用户权限隔离。
 
-## 项目结构
+### 💾 云存档系统
+- **跨端同步**：支持游戏存档云端上传与下载，随时随地继续游戏。
+- **自动存档**：可开启自动存档功能，系统定时同步游戏进度。
 
-```
+### 🚀 部署与运维
+- **一键部署**：提供 `deploy.sh` 脚本，自动化完成依赖安装、项目构建及服务启动。
+- **全栈集成**：后端 Node.js 服务直接托管前端静态文件，无需额外配置 Nginx 即可运行。
+- **SPA 优化**：完善的路由拦截处理，支持页面刷新与直接访问子路径。
+
+## 🛠️ 技术栈
+
+- **前端**：React 18, TypeScript, Vite, Ant Design 5, Zustand, Axios
+- **后端**：Node.js, Express, TypeScript, SQLite (sql.js), JWT, Speakeasy (MFA)
+- **运维**：PM2, Shell Script
+
+## 📂 项目结构
+
+```text
 MyGamesV2/
 ├── packages/
-│   ├── backend/          # 后端服务
+│   ├── backend/          # 后端服务 (Express + TypeScript)
 │   │   ├── src/
-│   │   │   ├── config/   # 配置文件
-│   │   │   ├── controllers/
-│   │   │   ├── entities/ # 数据库实体
-│   │   │   ├── middlewares/
-│   │   │   ├── routes/
-│   │   │   ├── scripts/  # 数据库迁移脚本
-│   │   │   └── utils/
-│   │   ├── data/         # SQLite 数据库文件
-│   │   └── package.json
-│   └── frontend/         # 前端应用
+│   │   │   ├── controllers/ # 业务逻辑
+│   │   │   ├── middlewares/ # 鉴权、MFA、上传中间件
+│   │   │   ├── routes/      # 路由定义
+│   │   │   └── config/      # 系统配置
+│   │   └── data/            # 数据库文件存放处
+│   └── frontend/         # 前端应用 (React + Vite)
 │       ├── src/
-│       │   ├── components/
-│       │   ├── layouts/
-│       │   ├── pages/
-│       │   ├── services/
-│       │   ├── stores/
-│       │   └── utils/
-│       └── package.json
-├── public/               # 静态资源
-│   ├── Games/           # 游戏文件
-│   ├── images/          # 游戏封面图
-│   └── uploads/         # 上传临时目录
-├── package.json          # 根 package.json (workspaces)
-└── README.md
+│       │   ├── pages/       # 页面组件 (含管理后台)
+│       │   ├── services/    # API 服务封装
+│       │   └── stores/      # 状态管理 (Zustand)
+├── public/               # 静态资源目录 (游戏文件、图片)
+├── deploy.sh             # 一键部署脚本
+└── ecosystem.config.js   # PM2 配置文件
 ```
 
-## 快速开始
+## 🚦 快速开始
 
-### 环境要求
+### 开发环境运行
 
-- Node.js >= 18.0.0
-- npm >= 9.0.0
+1. **安装依赖**：
+   ```bash
+   npm install
+   ```
 
-**注意**: 本项目使用 SQLite，无需安装额外的数据库服务。
+2. **初始化数据库**：
+   ```bash
+   npm run db:migrate
+   ```
 
-### 1. 安装依赖
+3. **启动开发服务器**：
+   ```bash
+   npm run dev
+   ```
+   - 前端：`http://localhost:5173`
+   - 后端 API：`http://localhost:3001`
+
+### 生产环境部署
+
+我们推荐使用提供的一键部署脚本（适用于 Linux）：
 
 ```bash
-cd MyGamesV2
-npm install
+chmod +x deploy.sh
+./deploy.sh
 ```
 
-### 2. 配置环境变量
+脚本会自动完成：
+- 前后端代码打包
+- 目录结构创建
+- 数据库迁移
+- 使用 PM2 启动服务（如果已安装）
 
-复制 `packages/backend/.env.example` 到 `packages/backend/.env` 并修改配置：
+## 🔐 安全配置说明
 
-```env
-# 服务器配置
-PORT=3001
-NODE_ENV=development
+### 1. 管理员初始账号
+- **用户名**：`admin`
+- **初始密码**：`admin123`
+- *注意：首次登录后系统会强制要求修改密码。*
 
-# SQLite 数据库路径
-DB_PATH=./data/mygames.db
+### 2. 开启 MFA 验证
+1. 登录管理后台，进入 **"安全设置"** 菜单。
+2. 点击 **"开始配置"**，使用手机 App（如 Google Authenticator）扫描二维码。
+3. 输入手机生成的 6 位验证码完成绑定。
+4. 绑定成功后，下次登录将强制要求输入动态验证码。
 
-# 管理员账号（独立配置）
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
+### 3. 邀请码管理
+管理员可在后台 **"邀请码管理"** 页面批量生成邀请码。只有持有有效邀请码的用户才能完成注册。
 
-# JWT 密钥
-JWT_SECRET=your_jwt_secret_key
-JWT_EXPIRES_IN=7d
+## 📝 运维建议
 
-# 文件上传配置
-UPLOAD_MAX_SIZE=104857600
-PUBLIC_PATH=../../public
-```
+- **Nginx 配置**：建议在 Nginx 中设置 `client_max_body_size 2048M;` 以支持大文件上传。
+- **备份**：定期备份 `data/mygames.db` 文件及 `public/` 目录下的游戏资源。
 
-### 3. 初始化数据库
-
-```bash
-npm run db:migrate
-```
-
-此命令会：
-- 自动创建 SQLite 数据库文件
-- 自动创建数据库表结构
-- 从旧项目的 `games.json` 导入游戏数据（如果存在）
-
-### 4. 启动开发服务器
-
-```bash
-npm run dev
-```
-
-这会同时启动前端和后端开发服务器：
-- 前端: http://localhost:5173
-- 后端 API: http://localhost:3001
-- 管理后台: http://localhost:5173/admin
-
-### 5. 生产构建
-
-```bash
-npm run build
-npm run start
-```
-
-## 可用脚本
-
-| 命令 | 说明 |
-|------|------|
-| `npm run dev` | 同时启动前后端开发服务器 |
-| `npm run dev:backend` | 仅启动后端开发服务器 |
-| `npm run dev:frontend` | 仅启动前端开发服务器 |
-| `npm run build` | 构建前后端生产版本 |
-| `npm run start` | 启动生产服务器 |
-| `npm run db:migrate` | 运行数据库迁移 |
-| `npm run clean` | 清理 node_modules 和 dist |
-
-## 功能特性
-
-### 管理后台 (/admin)
-- 管理员登录（独立账号，配置在 .env 文件）
-- 游戏管理（列表、添加、编辑、删除）
-- ZIP 压缩包上传游戏
-- 自动解压到 Games 目录
-- 自动提取游戏封面图到 images 目录
-- 游戏预览（iframe 内嵌）
-- 游戏置顶/开关状态管理
-
-### 用户端 (/)
-- 游戏卡片列表展示
-- 游戏搜索功能
-- 用户登录/注册
-- 云存档功能（自动/手动）
-- 点击/点赞统计
-- 游戏大图预览
-- 新游戏/置顶标签
-
-## API 接口
-
-### 认证接口
-- `POST /api/auth/admin/login` - 管理员登录
-- `POST /api/auth/login` - 用户登录
-- `POST /api/auth/register` - 用户注册
-
-### 游戏接口
-- `GET /api/games` - 获取游戏列表
-- `GET /api/games/:id` - 获取单个游戏
-- `POST /api/games` - 创建游戏（需管理员权限）
-- `PUT /api/games/:id` - 更新游戏（需管理员权限）
-- `DELETE /api/games/:id` - 删除游戏（需管理员权限）
-- `POST /api/games/upload` - 上传游戏 ZIP（需管理员权限）
-- `POST /api/games/:id/image` - 上传游戏封面（需管理员权限）
-- `POST /api/games/click` - 记录点击
-- `POST /api/games/like` - 记录点赞
-- `GET /api/games/likes` - 获取点赞状态
-
-### 存档接口
-- `GET /api/saves/auto-save` - 获取自动存档设置
-- `POST /api/saves/auto-save` - 设置自动存档
-- `POST /api/saves/upload` - 上传存档
-- `POST /api/saves/download` - 下载存档
-- `GET /api/saves/list` - 获取存档列表
-
-## 从旧项目迁移
-
-1. 确保旧项目 `MyGames/games.json` 文件存在
-2. 运行 `npm run db:migrate`，会自动导入游戏数据
-3. 手动复制旧项目的 `Games/` 和 `images/` 目录到 `MyGamesV2/public/`
-
-## 默认管理员账号
-
-- 用户名: `admin`
-- 密码: `admin123`
-
-（可在 `.env` 文件中修改）
-
-## SQLite 数据库
-
-数据库文件位于 `packages/backend/data/mygames.db`。
-
-优势：
-- 无需安装额外数据库服务
-- 单文件存储，便于备份和迁移
-- 适合中小型应用
+---
+🎮 *摸鱼大全 - 让快乐更简单*
